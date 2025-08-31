@@ -6,13 +6,14 @@
   <script src="/socket.io/socket.io.js"></script>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
-    .bot { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-    .bot button { margin-left: 10px; }
-    #addBotForm { margin-bottom: 20px; }
+    #botsContainer div { cursor: pointer; padding: 5px; border: 1px solid #ccc; margin-bottom: 5px; }
+    .selected { background-color: #eef; }
+    #botDetails { border: 1px solid #aaa; padding: 10px; margin-top: 20px; }
+    button { margin-left: 5px; }
   </style>
 </head>
 <body>
-  <h1>Minecraft Bots (Semi UI)</h1>
+  <h1>Minecraft Bots</h1>
 
   <form id="addBotForm">
     <input type="text" id="botUsername" placeholder="Bot Username" required>
@@ -21,25 +22,56 @@
 
   <div id="botsContainer"></div>
 
+  <div id="botDetails">
+    <h2 id="selectedBotName">Select a bot</h2>
+    <div id="botStatus"></div>
+  </div>
+
   <script>
     const socket = io();
+    let selectedBot = null;
+    let botsData = [];
+
     const botsContainer = document.getElementById('botsContainer');
+    const botStatus = document.getElementById('botStatus');
+    const selectedBotName = document.getElementById('selectedBotName');
 
     function renderBots(bots) {
+      botsData = bots;
       botsContainer.innerHTML = '';
       bots.forEach(bot => {
         const div = document.createElement('div');
-        div.className = 'bot';
-        div.innerHTML = `
-          <strong>${bot.username}</strong> - ${bot.online ? 'Online' : 'Offline'}<br>
-          Position: ${bot.position ? `x:${bot.position.x.toFixed(1)}, y:${bot.position.y.toFixed(1)}, z:${bot.position.z.toFixed(1)}` : 'N/A'}<br>
-          Health: ${bot.health} | Hunger: ${bot.food} | XP: ${bot.xp} | Dimension: ${bot.dimension}<br>
-          Uptime: ${bot.uptime}s
-          <br>
-          <button onclick="removeBot('${bot.username}')">Remove</button>
-        `;
+        div.textContent = `${bot.username} - ${bot.online ? 'Online' : 'Offline'} (${bot.enabled ? 'Enabled' : 'Disabled'})`;
+        div.onclick = () => selectBot(bot.username);
+        if (selectedBot === bot.username) div.classList.add('selected');
         botsContainer.appendChild(div);
       });
+      renderSelectedBot();
+    }
+
+    function renderSelectedBot() {
+      if (!selectedBot) {
+        selectedBotName.textContent = 'Select a bot';
+        botStatus.innerHTML = '';
+        return;
+      }
+      const bot = botsData.find(b => b.username === selectedBot);
+      if (!bot) return;
+      selectedBotName.textContent = bot.username;
+      botStatus.innerHTML = `
+        <strong>Status:</strong> ${bot.online ? 'Online' : 'Offline'}<br>
+        <strong>Enabled:</strong> ${bot.enabled}<br>
+        Position: ${bot.position ? `x:${bot.position.x.toFixed(1)}, y:${bot.position.y.toFixed(1)}, z:${bot.position.z.toFixed(1)}` : 'N/A'}<br>
+        Health: ${bot.health} | Hunger: ${bot.food} | XP: ${bot.xp} | Dimension: ${bot.dimension}<br>
+        Uptime: ${bot.uptime}s<br>
+        <button onclick="toggleBot('${bot.username}')">${bot.enabled ? 'Disable' : 'Enable'}</button>
+        <button onclick="removeBot('${bot.username}')">Remove</button>
+      `;
+    }
+
+    function selectBot(username) {
+      selectedBot = username;
+      renderBots(botsData);
     }
 
     socket.on('bots', bots => {
@@ -57,12 +89,21 @@
       document.getElementById('botUsername').value = '';
     });
 
+    async function toggleBot(username) {
+      await fetch('/toggle-bot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+    }
+
     async function removeBot(username) {
       await fetch('/remove-bot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username })
       });
+      if (selectedBot === username) selectedBot = null;
     }
   </script>
 </body>
