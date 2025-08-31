@@ -1,13 +1,16 @@
-const express = require('express');
-const path = require('path');
+const express = require("express");
+const path = require("path");
 const app = express();
 
-// Serve static files from 'public' folder
-app.use(express.static(path.join(__dirname, 'public')));
+// Use the port Railway gives us, or fallback to 3000 locally
+const PORT = process.env.PORT || 3000;
 
-// Railway sets the port in process.env.PORT
-const PORT = process.env.PORT || 8080;
+app.use(express.static(path.join(__dirname, "/")));
 
-app.listen(PORT, '0.0.0.0', () => {
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+app.listen(PORT, () => {
   console.log(`✅ Web server running on port ${PORT}`);
 });
