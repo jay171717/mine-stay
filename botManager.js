@@ -1,44 +1,91 @@
 const mineflayer = require('mineflayer');
 
 class BotManager {
-  constructor(io) {
-    this.io = io;
-    this.bots = {};
+  constructor() {
+    this.bots = {}; // { username: botData }
   }
 
-  addBot(name) {
-    if (this.bots[name]) return;
+  addBot(username) {
+    if (this.bots[username]) return this.bots[username];
+
     const bot = mineflayer.createBot({
       host: 'fakesalmon.aternos.me',
       port: 25565,
-      username: name,
+      username: username,
       version: '1.21.4'
     });
 
+    const botData = {
+      username,
+      bot,
+      online: true,
+      position: null,
+      health: 20,
+      food: 20,
+      xp: 0,
+      dimension: null,
+      uptime: 0,
+      lastTick: Date.now()
+    };
+
     bot.on('spawn', () => {
-      console.log(`${name} spawned`);
-      this.io.emit('botStatus', { name, status: 'online' });
+      console.log(`${username} spawned`);
+      botData.online = true;
+      botData.position = bot.entity.position;
+      botData.dimension = bot.dimension;
+      botData.health = bot.health;
+      botData.food = bot.food;
+      botData.xp = bot.experience.level;
+    });
+
+    bot.on('health', () => {
+      botData.health = bot.health;
+      botData.food = bot.food;
+    });
+
+    bot.on('experience', () => {
+      botData.xp = bot.experience.level;
     });
 
     bot.on('end', () => {
-      console.log(`${name} disconnected, reconnecting...`);
-      setTimeout(() => this.addBot(name), 3000);
+      console.log(`${username} disconnected, attempting reconnect...`);
+      botData.online = false;
+      setTimeout(() => {
+        this.removeBot(username);
+        this.addBot(username);
+      }, 5000);
     });
 
-    bot.on('death', () => {
-      console.log(`${name} died, respawning...`);
-      bot.emit('respawn');
-    });
+    // Uptime tracking
+    setInterval(() => {
+      if (botData.online) {
+        botData.uptime = Math.floor((Date.now() - botData.lastTick) / 1000);
+        botData.position = bot.entity?.position || botData.position;
+      }
+    }, 1000);
 
-    this.bots[name] = bot;
+    this.bots[username] = botData;
+    return botData;
   }
 
-  removeBot(name) {
-    const bot = this.bots[name];
-    if (!bot) return;
-    bot.quit();
-    delete this.bots[name];
-    this.io.emit('botStatus', { name, status: 'offline' });
+  removeBot(username) {
+    if (!this.bots[username]) return;
+    const botData = this.bots[username];
+    botData.bot.quit();
+    delete this.bots[username];
+  }
+
+  getAllBots() {
+    return Object.values(this.bots).map(bot => ({
+      username: bot.username,
+      online: bot.online,
+      position: bot.position,
+      health: bot.health,
+      food: bot.food,
+      xp: bot.xp,
+      dimension: bot.dimension,
+      uptime: bot.uptime
+    }));
   }
 }
 
