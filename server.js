@@ -1,16 +1,15 @@
-require("dotenv").config();
 const express = require("express");
 const path = require("path");
-const { createBot, getBots } = require("./botManager"); // make sure botManager.js exists
+const { createBot, getBots } = require("./botManager");
 
 const app = express();
-const PORT = process.env.PORT || 3000; // Railway will set process.env.PORT automatically
+const PORT = process.env.PORT || 3000; // Railway automatically sets PORT
 
 // Serve static frontend files
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 
-// Route to serve index.html
+// Serve index.html
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
