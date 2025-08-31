@@ -1,11 +1,13 @@
 {
-  "name": "mine-stay",
+  "name": "mine-bot",
   "version": "1.0.0",
+  "description": "Minecraft bot web app",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "mineflayer": "^4.4.0"
   }
 }
