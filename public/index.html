@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>MineStay Control Panel</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div class="wrap">
+    <h1>MineStay</h1>
+
+    <section class="card">
+      <h2>[Server Status]</h2>
+      <div id="serverStatus">
+        <div>Checking...</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="row between center">
+        <h2>[Bots]</h2>
+        <div>
+          <input id="newBotName" placeholder="Bot Name (e.g. JayBot)" />
+          <button id="addBotBtn">Add Bot</button>
+        </div>
+      </div>
+      <div id="botsList"></div>
+    </section>
+
+    <section class="card">
+      <h2 id="activeTitle">[No bot selected]</h2>
+
+      <div id="botDetail" class="hidden">
+        <h3>Inventory</h3>
+        <div class="inv">
+          <div class="invRow">
+            <div class="invLabel">Hotbar:</div>
+            <div id="hotbar" class="slots"></div>
+          </div>
+          <div class="invRow">
+            <div class="invLabel">Offhand:</div>
+            <div id="offhand" class="slots"></div>
+          </div>
+        </div>
+
+        <h3>Movement / Looking</h3>
+        <div class="grid">
+          <div>
+            <h4>Move</h4>
+            <div class="row gap">
+              <button data-move="forward">W</button>
+              <button data-move="left">A</button>
+              <button data-move="back">S</button>
+              <button data-move="right">D</button>
+            </div>
+            <div class="row gap">
+              <select id="moveMode">
+                <option value="once">X Blocks</option>
+                <option value="continuous">Continuous</option>
+                <option value="stop">Stop</option>
+              </select>
+              <input id="moveBlocks" type="number" value="3" min="1" step="1" />
+            </div>
+          </div>
+
+          <div>
+            <h4>Look</h4>
+            <div class="row gap">
+              <button data-look="up">↑</button>
+              <button data-look="left">←</button>
+              <button data-look="right">→</button>
+              <button data-look="down">↓</button>
+            </div>
+            <div class="row gap">
+              <label>Degrees</label>
+              <input id="lookDeg" type="number" value="15" step="1" />
+            </div>
+            <div class="row gap">
+              <label>Look at block (x y z)</label>
+              <input id="blkX" type="number" placeholder="x"/>
+              <input id="blkY" type="number" placeholder="y"/>
+              <input id="blkZ" type="number" placeholder="z"/>
+              <button id="lookAtBtn">Look</button>
+            </div>
+          </div>
+        </div>
+
+        <h3>Actions</h3>
+        <div class="grid">
+          <div>
+            <h4>Action</h4>
+            <select id="actionSel">
+              <option value="jump">Jump</option>
+              <option value="sneak">Sneak</option>
+              <option value="leftClick">Left Click</option>
+              <option value="rightClick">Right Click</option>
+              <option value="useItem">Use Item</option>
+              <option value="drop">Drop</option>
+              <option value="dropStack">Drop Stack</option>
+            </select>
+          </div>
+          <div>
+            <h4>Mode</h4>
+            <select id="actionMode">
+              <option value="once">Once</option>
+              <option value="interval">Interval (gt)</option>
+              <option value="continuous">Continuous</option>
+              <option value="stop">Stop</option>
+            </select>
+          </div>
+          <div>
+            <h4>Interval (gt)</h4>
+            <input id="intervalGt" type="number" value="10" min="1" step="1"/>
+          </div>
+          <div class="row center">
+            <button id="runAction">Run</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>
