@@ -8,17 +8,11 @@ class BotManager {
   addBot(username) {
     if (this.bots[username]) return this.bots[username];
 
-    const bot = mineflayer.createBot({
-      host: 'fakesalmon.aternos.me',
-      port: 25565,
-      username: username,
-      version: '1.21.4'
-    });
-
     const botData = {
       username,
-      bot,
-      online: true,
+      bot: null,
+      online: false,
+      enabled: true, // toggles whether the bot should stay online
       position: null,
       health: 20,
       food: 20,
@@ -28,39 +22,49 @@ class BotManager {
       lastTick: Date.now()
     };
 
-    bot.on('spawn', () => {
-      console.log(`${username} spawned`);
-      botData.online = true;
-      botData.position = bot.entity.position;
-      botData.dimension = bot.dimension;
-      botData.health = bot.health;
-      botData.food = bot.food;
-      botData.xp = bot.experience.level;
-    });
+    const spawnBot = () => {
+      const bot = mineflayer.createBot({
+        host: 'fakesalmon.aternos.me',
+        port: 25565,
+        username,
+        version: '1.21.4'
+      });
 
-    bot.on('health', () => {
-      botData.health = bot.health;
-      botData.food = bot.food;
-    });
+      botData.bot = bot;
 
-    bot.on('experience', () => {
-      botData.xp = bot.experience.level;
-    });
+      bot.on('spawn', () => {
+        botData.online = true;
+        botData.position = bot.entity.position;
+        botData.dimension = bot.dimension;
+        botData.health = bot.health;
+        botData.food = bot.food;
+        botData.xp = bot.experience.level;
+      });
 
-    bot.on('end', () => {
-      console.log(`${username} disconnected, attempting reconnect...`);
-      botData.online = false;
-      setTimeout(() => {
-        this.removeBot(username);
-        this.addBot(username);
-      }, 5000);
-    });
+      bot.on('health', () => {
+        botData.health = bot.health;
+        botData.food = bot.food;
+      });
+
+      bot.on('experience', () => {
+        botData.xp = bot.experience.level;
+      });
+
+      bot.on('end', () => {
+        botData.online = false;
+        if (botData.enabled) {
+          setTimeout(() => spawnBot(), 5000);
+        }
+      });
+    };
+
+    spawnBot();
 
     // Uptime tracking
     setInterval(() => {
       if (botData.online) {
         botData.uptime = Math.floor((Date.now() - botData.lastTick) / 1000);
-        botData.position = bot.entity?.position || botData.position;
+        botData.position = botData.bot.entity?.position || botData.position;
       }
     }, 1000);
 
@@ -68,10 +72,23 @@ class BotManager {
     return botData;
   }
 
-  removeBot(username) {
-    if (!this.bots[username]) return;
+  toggleBot(username) {
     const botData = this.bots[username];
-    botData.bot.quit();
+    if (!botData) return;
+    botData.enabled = !botData.enabled;
+    if (!botData.enabled && botData.bot) {
+      botData.bot.quit();
+    } else if (botData.enabled && !botData.online) {
+      // Respawn if currently offline
+      this.addBot(username);
+    }
+  }
+
+  removeBot(username) {
+    const botData = this.bots[username];
+    if (!botData) return;
+    botData.enabled = false;
+    if (botData.bot) botData.bot.quit();
     delete this.bots[username];
   }
 
@@ -79,6 +96,7 @@ class BotManager {
     return Object.values(this.bots).map(bot => ({
       username: bot.username,
       online: bot.online,
+      enabled: bot.enabled,
       position: bot.position,
       health: bot.health,
       food: bot.food,
