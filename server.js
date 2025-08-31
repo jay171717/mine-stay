@@ -1,3 +1,4 @@
+const { createBot, getBots } = require("./botManager");
 require("dotenv").config();
 const express = require("express");
 const path = require("path");
@@ -30,3 +31,4 @@ app.get("/api/bots", (req, res) => {
 app.listen(PORT, () => {
   console.log(`✅ Web server running on port ${PORT}`);
 });
+
