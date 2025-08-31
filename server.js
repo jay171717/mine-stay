@@ -31,8 +31,8 @@ app.get("/api/bots", (req, res) => {
 });
 
 // Start the web server
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Web server running on port ${PORT}`);
 });
+
 
