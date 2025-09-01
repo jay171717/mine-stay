@@ -1,31 +1,52 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const path = require('path');
 const BotManager = require('./botManager');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Serve client files
+app.use(express.static(path.join(__dirname, '../client')));
+
+// Ensure root URL serves index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/index.html'));
+});
+
 const botManager = new BotManager();
-app.use(express.static('../client'));
 
 io.on('connection', (socket) => {
-    socket.on('startBot', (options) => botManager.startBot(options));
-    socket.on('stopBot', () => botManager.stopBot());
-    socket.on('moveBot', data => botManager.moveBot(data));
-    socket.on('selectSlot', slot => {
-        if (botManager.bot && botManager.bot.inventory) botManager.bot.setQuickBarSlot(slot);
-    });
-    socket.on('swapOffhand', () => {
-        if (botManager.bot) botManager.bot.swapHands();
+    console.log('A client connected');
+
+    socket.on('startBot', (options) => {
+        botManager.startBot(options);
+        console.log(`Bot started with username: ${options.username}`);
     });
 
-    const interval = setInterval(() => {
+    socket.on('stopBot', () => {
+        botManager.stopBot();
+        console.log('Bot stopped');
+    });
+
+    setInterval(() => {
         socket.emit('botStatus', botManager.getStatus());
     }, 1000);
 
-    socket.on('disconnect', () => clearInterval(interval));
+    socket.on('moveBot', data => {
+        // Movement logic handled server-side with pathfinder
+    });
+
+    socket.on('selectSlot', slot => {
+        // Handle slot selection
+    });
+
+    socket.on('swapOffhand', () => {
+        // Handle offhand swap
+    });
 });
 
-server.listen(3000, () => console.log('Server running on port 3000'));
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
