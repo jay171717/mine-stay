@@ -1,5 +1,6 @@
 const mineflayer = require('mineflayer');
-const { pathfinder } = require('mineflayer-pathfinder');
+const { pathfinder, Movements, goals } = require('mineflayer-pathfinder');
+const { Vec3 } = require('vec3');
 
 class BotManager {
     constructor() {
@@ -7,6 +8,7 @@ class BotManager {
         this.manualStop = false;
         this.reconnectDelay = 5000;
         this.statusData = {};
+        this.movements = null;
     }
 
     startBot(options) {
@@ -23,16 +25,22 @@ class BotManager {
         this.bot = mineflayer.createBot(options);
         this.bot.loadPlugin(pathfinder);
 
-        this.bot.once('spawn', () => this._updateStatus());
+        this.bot.once('spawn', () => {
+            this.movements = new Movements(this.bot);
+            this.bot.pathfinder.setMovements(this.movements);
+            this._updateStatus();
+        });
+
         this.bot.on('end', () => {
             if (!this.manualStop) setTimeout(() => this._spawnBot(options), this.reconnectDelay);
         });
 
-        this.bot.on('health', () => this._updateStatus());
-        this.bot.on('move', () => this._updateStatus());
-        this.bot.on('experience', () => this._updateStatus());
-        this.bot.on('entityEffect', () => this._updateStatus());
-        this.bot.on('inventoryUpdate', () => this._updateStatus());
+        ['health', 'move', 'experience', 'entityEffect', 'inventoryUpdate'].forEach(ev => {
+            this.bot.on(ev, () => this._updateStatus());
+        });
+
+        // Handle moveBot events
+        this.bot.on('moveBot', data => this.moveBot(data));
     }
 
     _updateStatus() {
@@ -51,6 +59,19 @@ class BotManager {
 
     getStatus() {
         return this.statusData;
+    }
+
+    moveBot(data) {
+        if (!this.bot) return;
+
+        const { x, y, z, blocks, moveMode, autoJump } = data;
+        const goal = x !== undefined && y !== undefined && z !== undefined
+            ? new goals.GoalBlock(x, y, z)
+            : null;
+
+        if (goal) {
+            this.bot.pathfinder.setGoal(goal);
+        }
     }
 }
 
