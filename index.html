@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Minecraft Bot Control</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="ui.js"></script>
+</head>
+<body>
+    <h1>Server Status</h1>
+    <div>
+        Add Bot: <input id="botName" placeholder="Bot Name">
+        Host: <input id="host" placeholder="Server IP">
+        <button onclick="addBotUI(document.getElementById('botName').value, document.getElementById('host').value)">Add Bot</button>
+    </div>
+    <h2>Bots</h2>
+    <div id="botList"></div>
+
+    <h3>Movement/Looking (Selected Bot)</h3>
+    <button onclick="moveBot('forward', 1)">W</button>
+    <button onclick="moveBot('back', 1)">S</button>
+    <button onclick="moveBot('left', 1)">A</button>
+    <button onclick="moveBot('right', 1)">D</button>
+    <br>
+    Yaw: <input type="number" id="yaw">
+    Pitch: <input type="number" id="pitch">
+    <button onclick="lookBot(parseFloat(document.getElementById('yaw').value), parseFloat(document.getElementById('pitch').value))">Look</button>
+    <br>
+    Hotbar: <input type="number" id="hotbarSlot">
+    <button onclick="selectHotbar(parseInt(document.getElementById('hotbarSlot').value))">Select Slot</button>
+    <button onclick="swapHands()">Swap Hands</button>
+</body>
+</html>
