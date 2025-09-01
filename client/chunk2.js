@@ -1,1 +1,3 @@
-// Chunk 2 features code
+document.addEventListener('moveCommand', (e) => {
+    socket.emit('moveBot', e.detail);
+});
