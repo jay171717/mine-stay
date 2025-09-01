@@ -1,4 +1,4 @@
-let moveMode = 'continuous'; 
+let moveMode = 'continuous';
 let autoJump = false;
 
 const toggleMoveModeBtn = document.getElementById('toggleMoveMode');
@@ -21,5 +21,5 @@ moveBtn.addEventListener('click', () => {
     const z = parseFloat(document.getElementById('gotoZ').value);
     const blocks = parseFloat(document.getElementById('moveBlocks').value);
 
-    document.dispatchEvent(new CustomEvent('moveCommand', { detail: { x, y, z, blocks } }));
+    document.dispatchEvent(new CustomEvent('moveCommand', { detail: { x, y, z, blocks, moveMode, autoJump } }));
 });
