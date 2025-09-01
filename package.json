@@ -1,7 +1,7 @@
 {
-  "name": "mine-bot-ui",
+  "name": "minestay",
   "version": "1.0.0",
-  "description": "Minecraft cracked bot manager with web UI",
+  "description": "MineStay bot control (Chunk 2 features)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -9,6 +9,8 @@
   "dependencies": {
     "express": "^4.18.2",
     "socket.io": "^4.7.2",
-    "mineflayer": "^4.3.1"
+    "mineflayer": "^4.7.0",
+    "vec3": "^0.1.7",
+    "body-parser": "^1.20.2"
   }
 }
