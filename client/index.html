@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Minecraft Bot</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="botControl">
+        <input id="username" placeholder="Username">
+        <input id="host" placeholder="Server IP">
+        <input id="port" placeholder="Port">
+        <input id="version" placeholder="Minecraft Version">
+        <button id="startStopBtn">Start</button>
+    </div>
+
+    <div id="tabs">
+        <button class="tabBtn" data-tab="statusTab">Status</button>
+        <button class="tabBtn" data-tab="movementTab">Movement</button>
+        <button class="tabBtn" data-tab="inventoryTab">Inventory</button>
+    </div>
+
+    <div id="statusTab" class="tabContent">
+        <div id="statusInfo">Waiting for bot...</div>
+    </div>
+
+    <div id="movementTab" class="tabContent">
+        <button id="toggleMoveMode">continuous</button>
+        <button id="autoJumpBtn">Auto-Jump OFF</button>
+        <input id="moveBlocks" placeholder="Blocks to move">
+        <input id="gotoX" placeholder="Goto X">
+        <input id="gotoY" placeholder="Goto Y">
+        <input id="gotoZ" placeholder="Goto Z">
+        <button id="moveBtn">Move</button>
+    </div>
+
+    <div id="inventoryTab" class="tabContent">
+        <div id="hotbarSlots"></div>
+        <div id="offhandSlot">Offhand: Empty</div>
+        <button id="swapOffhandBtn">Swap</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="botControl.js"></script>
+    <script src="status.js"></script>
+    <script src="movement.js"></script>
+    <script src="inventory.js"></script>
+    <script src="chunk2.js"></script>
+</body>
+</html>

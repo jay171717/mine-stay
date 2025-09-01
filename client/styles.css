@@ -1,0 +1,6 @@
+body { font-family: Arial, sans-serif; background: #222; color: #eee; }
+input { margin: 2px; }
+button { margin: 2px; padding: 5px 10px; }
+.tabContent { display: none; margin-top: 10px; }
+.tabContent.active { display: block; }
+.hotbar-slot { display: inline-block; border: 1px solid #888; padding: 5px; margin: 2px; cursor: pointer; }
