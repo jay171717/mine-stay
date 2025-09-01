@@ -1,14 +1,14 @@
 {
-  "name": "mc-bot-control",
+  "name": "mine-bot-ui",
   "version": "1.0.0",
+  "description": "Minecraft cracked bot manager with web UI",
   "main": "server.js",
-  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "mineflayer": "^4.20.0",
-    "socket.io": "^4.7.2"
+    "socket.io": "^4.7.2",
+    "mineflayer": "^4.3.1"
   }
 }
