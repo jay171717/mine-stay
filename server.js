@@ -1,89 +1,41 @@
-import express from "express";
-import { createServer } from "http";
-import { Server as SocketServer } from "socket.io";
-import mineflayer from "mineflayer";
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const botManager = require("./botManager");
 
 const app = express();
-const httpServer = createServer(app);
-const io = new SocketServer(httpServer);
+const server = http.createServer(app);
+const io = new Server(server);
 
-app.use(express.static(".")); // Serve root folder
+const PORT = process.env.PORT || 3000;
 
-let bot = null;
-let isBotOnline = false;
-let reconnecting = false;
+app.use(express.static(__dirname)); // serve everything in root (including index.html)
 
-// Broadcast log messages to Debug tab
-function log(message) {
-  console.log(message);
-  io.emit("debug", message);
-}
-
-function createBot() {
-  if (bot) {
-    bot.removeAllListeners();
-    bot.end();
-    bot = null;
-  }
-
-  log("⛏️ Creating bot...");
-
-  bot = mineflayer.createBot({
-    host: "localhost", // <-- change to your server IP
-    port: 25565,
-    username: "wow",
-  });
-
-  bot.on("login", () => {
-    log("✅ Bot logged in!");
-    isBotOnline = true;
-    io.emit("status", isBotOnline);
-  });
-
-  bot.on("end", () => {
-    log("⚠️ Bot disconnected.");
-    isBotOnline = false;
-    io.emit("status", isBotOnline);
-
-    if (!reconnecting) {
-      reconnecting = true;
-      setTimeout(() => {
-        reconnecting = false;
-        createBot();
-      }, 5000); // auto-reconnect delay
-    }
-  });
-
-  bot.on("error", (err) => {
-    log(`❌ Error: ${err.message}`);
-  });
-}
-
-// WebSocket events
 io.on("connection", (socket) => {
-  log("📡 Client connected to WebSocket");
-  socket.emit("status", isBotOnline);
+  console.log("Client connected");
 
-  socket.on("toggle", () => {
-    if (isBotOnline) {
-      log("🛑 Stopping bot...");
-      if (bot) bot.end();
-    } else {
-      log("▶️ Starting bot...");
-      createBot();
-    }
+  // Send existing bots to the client
+  socket.emit("updateBots", botManager.getBotsData());
+
+  // Add bot
+  socket.on("addBot", (name) => {
+    botManager.addBot(name);
+    io.emit("updateBots", botManager.getBotsData());
   });
 
-  socket.on("sendCommand", (cmd) => {
-    if (isBotOnline && bot) {
-      log(`💬 Executing: ${cmd}`);
-      bot.chat(cmd);
-    } else {
-      log("⚠️ Bot is offline, cannot run command.");
-    }
+  // Remove / Toggle bot
+  socket.on("toggleBot", (name) => {
+    botManager.toggleBot(name);
+    io.emit("updateBots", botManager.getBotsData());
+  });
+
+  // Listen for requests for bot status
+  socket.on("getBotStatus", (name) => {
+    const status = botManager.getBotStatus(name);
+    socket.emit("botStatus", status);
   });
 });
 
-httpServer.listen(3000, () => {
-  console.log("🚀 Server running on http://localhost:3000");
+server.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
 });
