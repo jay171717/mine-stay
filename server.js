@@ -1,41 +1,51 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const botManager = require("./botManager");
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const { createBot, removeBot, bots, moveBot, lookBot, selectHotbar, swapHands } = require('./botManager');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const PORT = process.env.PORT || 3000;
+app.use(express.static(__dirname));
 
-app.use(express.static(__dirname)); // serve everything in root (including index.html)
+io.on('connection', socket => {
+    socket.on('addBot', ({ name, host }) => {
+        createBot(name, host);
+        io.emit('updateBots', getAllBotsData());
+    });
 
-io.on("connection", (socket) => {
-  console.log("Client connected");
+    socket.on('removeBot', ({ name }) => {
+        removeBot(name);
+        io.emit('updateBots', getAllBotsData());
+    });
 
-  // Send existing bots to the client
-  socket.emit("updateBots", botManager.getBotsData());
+    socket.on('moveBot', ({ name, direction, distance }) => {
+        moveBot(name, direction, distance);
+    });
 
-  // Add bot
-  socket.on("addBot", (name) => {
-    botManager.addBot(name);
-    io.emit("updateBots", botManager.getBotsData());
-  });
+    socket.on('lookBot', ({ name, yaw, pitch, target }) => {
+        lookBot(name, yaw, pitch, target);
+    });
 
-  // Remove / Toggle bot
-  socket.on("toggleBot", (name) => {
-    botManager.toggleBot(name);
-    io.emit("updateBots", botManager.getBotsData());
-  });
+    socket.on('selectHotbar', ({ name, slot }) => selectHotbar(name, slot));
+    socket.on('swapHands', ({ name }) => swapHands(name));
 
-  // Listen for requests for bot status
-  socket.on("getBotStatus", (name) => {
-    const status = botManager.getBotStatus(name);
-    socket.emit("botStatus", status);
-  });
+    const interval = setInterval(() => {
+        io.emit('updateBots', getAllBotsData());
+    }, 500);
+
+    socket.on('disconnect', () => clearInterval(interval));
 });
 
-server.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+function getAllBotsData() {
+    const result = {};
+    for (const name in bots) {
+        result[name] = bots[name].customData;
+    }
+    return result;
+}
+
+server.listen(process.env.PORT || 8080, '0.0.0.0', () => {
+    console.log(`✅ Web server running on port ${process.env.PORT || 8080}`);
 });
